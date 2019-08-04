@@ -313,10 +313,26 @@ class DoublyLinkedList(object):
 
 # 重新简洁定义单链表
 class ListNode:
-    def __init__(self, x):
-        self.val = x
-        self.next = None
+  def __init__(self, x=None):
+    self.val = x
+    self.next = None
 
+# 将数组构建为链表
+def createLinkedList(arr=[]):
+  dummy = cur = ListNode(0)
+  for i in arr:
+    newNode = ListNode(i)
+    cur.next = newNode
+    cur = cur.next
+  return dummy.next
+    
+# 打印
+def showDetail(head):
+  cur = head
+  while cur:
+    print(cur.val,end='->' if cur.next else '\n') 
+    cur = cur.next
+    
 # 两个链表相加
 # 比如 1->2->3 加上 4->5->7 输出 5->7->0->1
 def sumLL(l1,l2):
@@ -418,5 +434,137 @@ def swapPairsByRecur(head):
   return temp
 
 # 每 K 个一组进行翻转
+# 每次翻转都是经典的单链表翻转，将右边当做已完成翻转的子串
 def reverseKGroup(head,k):
   pass
+
+# 删除有序链表中的重复元素，保留一个
+def deleteDuplicates(head):
+  if not head:
+    return head
+  cur = head
+  while cur.next and cur.next.val == cur.val:
+    cur = cur.next
+  head.next = deleteDuplicates(cur.next)
+  return head
+
+# 删除有序链表中的重复元素，一个都不留
+def deleteDuplicatesPro(head):
+  if head is None:
+    return head
+  dummy = prev = ListNode(0)
+  cur = head
+  prev.next = head
+  # 先尝试不重复的，更新 prev 指针
+  while cur.next and cur.next.val != cur.val:
+    prev = cur
+    cur = cur.next
+  # 重复的 cur 指针继续右移
+  while cur.next and cur.next.val == cur.val:
+    cur = cur.next
+  # 尾巴区别对待
+  prev.next = cur if prev.next == cur else deleteDuplicatesPro(cur.next)
+  return dummy.next
+
+# 给定目标值，分隔链表（小的在左边）
+def partition(head,x):
+  if head is None or head.next is None:
+    return head
+  dummy = smallPrev  = ListNode(0)
+  bigPrev =  solid = None #第一个大于等于x的节点，分界线
+  cur = head
+  while cur:
+    if cur.val < x:
+      smallPrev.next = cur
+      smallPrev = cur
+    else:
+      if solid is None:
+        solid = cur
+      if bigPrev is not None:
+        bigPrev.next = cur
+      bigPrev = cur
+    cur = cur.next
+  # 将最后一个小节点指向solid节点
+  # 将最后一个大节点指向 None
+  bigPrev.next = None
+  if smallPrev.val == 0:
+    return head
+  smallPrev.next = solid
+  return dummy.next
+
+# showDetail(partition(createLinkedList([1,4,3,2,5,2]),3))
+# 反转部分链表，从 m 到 n
+def reverseBetween(head,m,n):
+  if head is None or head.next is None or m == n:
+    return head
+  count = 1
+  cur = head
+  prev = ListNode()
+  start = None
+  dummy = preStart = ListNode()
+  while cur and count <= n:
+    if count == m:
+      preStart = prev
+      start = cur
+    if count == n:
+      preStart.next = cur
+    next = cur.next
+    # 从m到n才需要反转
+    if count != 1 and count >= m and count <= n:
+      cur.next = prev
+    prev = cur
+    cur = next
+    count += 1
+  start.next = cur
+  return head if preStart.val is not None else preStart.next
+# showDetail(reverseBetween(createLinkedList([1,2,3,4,5]),4,5))
+
+# 利用有序链表构造二叉搜索树 BST
+# 定义二叉树节点
+class TreeNode(object):
+  def __init__(self, val):
+    self.val = val
+    self.left = None
+    self.right = None
+#   todo 
+def sortedListToBST(head):
+  # 将有序链表转换为数组，能够更高效的寻找mid节点
+  arr = []
+  cur = head
+  while cur:
+    arr.append(cur.val)
+    cur = cur.next
+  # 递归构造 BST
+  def createBST(arr):
+    size = len(arr)
+    if size == 0:
+      return None
+    if size == 1:
+      return TreeNode(arr[0])
+    mid = size//2
+    node = TreeNode(arr[mid])
+    node.left = createBST(arr[0:mid])
+    node.right = createBST(arr[mid+1:])
+    return node
+  createBST(arr)
+
+# 复制带随机指针的链表
+class RandomNode(object):
+  def __init__(self,val):
+    self.val = val
+    self.next = None
+    self.random = None
+
+def copyRandomList(head):
+  hashmap = {}
+  def traceBack(node):
+    if node is None:
+      return None
+    if node in hashmap:
+      return hashmap[node]
+    newNode = RandomNode(node.val)
+    hashmap[node] = newNode
+    newNode.next = traceBack(node.next)
+    newNode.random = traceBack(node.random)
+    return newNode
+  return traceBack(head)
