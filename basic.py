@@ -82,3 +82,10 @@ result = 0
 for ele in lists:
     result += int(ele)
 print('Sum is %d' %result)
+
+# 正则，获取字符串首尾的数字
+import re
+def getNumFromLog(s):
+  reg = re.compile(r'(\d+):(\w+):(\d+)')
+  res = reg.match(s)
+  return (int(res.group(1)),res.group(2),int(res.group(3)))
