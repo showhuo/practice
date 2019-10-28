@@ -166,3 +166,58 @@ def palindromePairs(words):
 # 辅助函数，检查是否回型字符串
 def isPalindrome(s:str):
   return s == s[::-1]
+
+
+
+
+# 有且仅有一个错别字的 trie 树
+class MagicDictionary:
+  def __init__(self):
+    """
+    Initialize your data structure here.
+    """
+    self.trie = Trie()
+      
+  def buildDict(self, dicts) -> None:
+    """
+    Build a dictionary through a list of words
+    """
+    for s in dicts:
+      self.trie.insert(s)
+
+  def search(self, word: str) -> bool:
+    """
+    Returns if there is any word in the trie that equals to the given word after modifying exactly one character
+    """
+    res = False
+    counter = 0
+    # 辅助函数，回溯
+    def traceBack(node,word,counter):
+      nonlocal res
+      # 唯一满足条件
+      # TODO 有遗漏
+      if not word:
+        if node.isEnd and counter == 1:
+          res = True
+          return
+      # 常规终止
+      if not node or not word:
+        return
+      w = word[0]
+      if w in node.children:
+        node = node.children[w]
+        traceBack(node,word[1:],counter)
+      else:
+        # 与正则符号 . 类似，发现一个坏字符。将它当做所有可能，继续递归。
+        counter += 1
+        for n in node.children.values():
+          traceBack(n,w[1:],counter)
+    # 执行
+    traceBack(self.trie.root,word,counter)
+    return res
+
+
+# Your MagicDictionary object will be instantiated and called as such:
+# obj = MagicDictionary()
+# obj.buildDict(dict)
+# param_2 = obj.search(word)
