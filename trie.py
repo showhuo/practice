@@ -4,6 +4,7 @@
 # 具体应用有输入联想、自动补齐等
 
 from collections import deque
+from collections import Counter
 
 class Node():
   def __init__(self, val=None):
@@ -11,6 +12,8 @@ class Node():
     # 追求极致性能的话，这里改成 size K 的数组，K 是字符集中不同的字母个数
     self.children = {}
     self.isEnd = False
+    # 为后续问题服务
+    self.idx = -1
 
 class Trie:
 
@@ -97,15 +100,6 @@ class Trie:
         recur(c)
     recur(self.root)
 
-# Your Trie object will be instantiated and called as such:
-obj = Trie()
-obj.insert('abc')
-obj.insert('def')
-obj.insert('mmm')
-# obj.bfs()
-# obj.dfs()
-print(obj.searchWithDot('...c'))
-
 
 # 给定 n*n 的二维字符矩阵，以及一个 words list，字符在矩阵中只能横竖连续组合，找出 list 中能如此构造的字符串
 # 回溯思想，通过 words 构造一个 Trie，将矩阵中的每个点作为起点，在 Trie 中寻找满足的单词
@@ -167,21 +161,12 @@ def palindromePairs(words):
 def isPalindrome(s:str):
   return s == s[::-1]
 
-
-
-
-# 有且仅有一个错别字的 trie 树
+# 有且仅有一个错别字的匹配
 class MagicDictionary:
   def __init__(self):
-    """
-    Initialize your data structure here.
-    """
     self.trie = Trie()
       
   def buildDict(self, dicts) -> None:
-    """
-    Build a dictionary through a list of words
-    """
     for s in dicts:
       self.trie.insert(s)
 
@@ -195,29 +180,153 @@ class MagicDictionary:
     def traceBack(node,word,counter):
       nonlocal res
       # 唯一满足条件
-      # TODO 有遗漏
-      if not word:
-        if node.isEnd and counter == 1:
-          res = True
-          return
+      if not word and node.isEnd and counter == 1:
+        res = True
+        return
       # 常规终止
       if not node or not word:
         return
       w = word[0]
-      if w in node.children:
-        node = node.children[w]
-        traceBack(node,word[1:],counter)
-      else:
-        # 与正则符号 . 类似，发现一个坏字符。将它当做所有可能，继续递归。
-        counter += 1
-        for n in node.children.values():
-          traceBack(n,w[1:],counter)
+      # 我们不关心精确匹配，每一层都全部扫描，只在字符不同时，给当前 counter 加1
+      for k in node.children:
+        if k != w:
+          traceBack(node.children[k],word[1:],counter+1)
+        else:
+          traceBack(node.children[k],word[1:],counter)
     # 执行
     traceBack(self.trie.root,word,counter)
     return res
 
+# 求共同前缀的key，对应 value 的 sum
+# 比检查前缀存在复杂一点，需要回溯找出共同前缀的所有节点
+class MapSum:
+  def __init__(self):
+    """
+    Initialize your data structure here.
+    """
+    self.root = Node('root')
 
-# Your MagicDictionary object will be instantiated and called as such:
-# obj = MagicDictionary()
-# obj.buildDict(dict)
-# param_2 = obj.search(word)
+  def insert(self, key: str, val: int) -> None:
+    # 除了标记 isEnd，需要额外挂载 val 到节点上
+    node = self.root
+    for c in key:
+      if c not in node.children:
+        node.children[c] = Node(c)
+      node = node.children[c]
+    node.extraVal = val
+
+  def sum(self, prefix: str) -> int:
+    res = 0
+    node = self.root
+    for c in prefix:
+      if c not in node.children:
+        return res
+      node = node.children[c]
+    # 开始回溯
+    def recur(node):
+      nonlocal res
+      if not node:
+        return
+      if node.extraVal:
+        res += node.extraVal
+      for n in node.children.values():
+        recur(n)
+    recur(node)
+    return res
+
+class StrNode():
+  def __init__(self, v=None):
+    self.v = v
+    self.children = [None]*26 # 只支持26个小写字母，可以辅助字母排序
+    self.word = None # 记录完整单词，同时起到标记 isWord 的作用
+
+# 找出 Top K frequent 单词，频率相同的按字母排序（伪top k问题）
+# 除了大顶堆，我们也可以用 bucket + Trie 解决
+# !frequency 相同的单词放入同个 bucket，字母排序根据 Trie Node 的 children 有序数组实现
+def topKFrequent(self, words, k: int):
+  # 统计次数
+  # countMap = Counter(words)
+  pass
+
+# 找最长连续单词
+# 这种 word 标记 + 回溯的解法也可以打印出指定前缀的所有单词
+def longestWord(words) -> str:
+  # 构造一颗 trie，查找时求最长连续 word 标记
+  trie = StrNode('/')
+  for word in words:
+    # !注意 node 指针必须在这个位置重置
+    node = trie
+    for w in word:
+      idx = ord(w) - ord('a')
+      if not node.children[idx]:
+        node.children[idx] = StrNode(w)
+      node = node.children[idx]
+    node.word = word
+  # 开始查找
+  node = trie
+  res = ''
+  # 辅助函数，回溯
+  def recur(node):
+    nonlocal res
+    # 一旦不连续，放弃当前分支
+    if not node or not node.word:
+      return
+    # 长度更新
+    if len(node.word) > len(res):
+      res = node.word
+    for n in node.children:
+      recur(n)
+  # 从第一层开始，防止 root.word 报错
+  for n in node.children:
+    recur(n)
+  return res
+
+# 给定一个 words 数组，下标 i 的权重 i，求满足 (prefix, suffix) 条件的权重最大的单词
+class WordFilter:
+  def __init__(self, words):
+    self.words = words
+    # fPro 解法：构造一颗大 trie，应对频繁查找
+    # !Trie 的好处在于，使用大量内存空间换取效率
+    # 这里我们构造一颗“超大”的 trie：对每一个 word，找出所有的 suffix，用 suffix + "#" + word 插入树里，同时让节点挂载更高的权重
+    self.trie = Node()
+    for k in range(len(words)):
+      word = words[k]
+      for i in range(len(word)+1):
+        node = self.trie
+        tempStr = word[i:] + '#' + word
+        for w in tempStr:
+          if w not in node.children:
+            node.children[w] = Node(w)
+          node = node.children[w]
+          node.idx = k
+        # 辅助可视化
+        # node.word = tempStr
+        # print(node.word)
+
+
+  def f(self, prefix: str, suffix: str) -> int:
+    res = -1
+    if not prefix and not suffix:
+      return len(self.words) - 1
+    for i in range(len(self.words)-1,-1,-1):
+      word = self.words[i]
+      # 这种 BF 解法是正确的，不过只适合一次性查找，注意 suffix 必须指定起始查找位置
+      if word.find(prefix) == 0 and word.find(suffix,len(word)-len(suffix)) == len(word)  - len(suffix):
+        res = i
+        break
+    return res
+
+  # 查找时，找到 suffix + "#" + prefix 即可
+  def fPro(self, prefix: str, suffix: str) -> int:
+    if not prefix and not suffix:
+      return len(self.words) - 1
+    node = self.trie
+    theStr = suffix + '#' + prefix
+    for w in theStr:
+      if w not in node.children:
+        return -1
+      node = node.children[w]
+    return node.idx
+
+obj = WordFilter(['apple'])
+print(obj.f('a','e'))
