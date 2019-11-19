@@ -223,11 +223,28 @@ def peakIndexInMountainArray(A=[]):
       else:
         high = mid - 1
 
-# 有序数组被分成两段，比如 456123，求目标值下标
+# !有序数组在某个点被切开，比如456012，求最小值
+# 取最左侧的值来跟 mid 不断比较缩进
+def findMin(nums):
+  low = 0
+  high = len(nums) - 1
+  while low <= high:
+    if nums[low] <= nums[high]:
+      return low
+    mid = low + ((high - low) >> 1)
+    # 左侧有序，往右边找
+    if nums[low] <= nums[mid]:
+      low = mid + 1
+    else:
+      # mid 有可能是目标值，因此不能减1
+      high = mid
+
+# !有序数组被分成两段，比如 456123，求目标值下标
 # 需要将问题转化为可以使用二分查找的模型
 # 当 target 与 mid 在同一侧时，按正常缩减范围
 # 当 target 与 mid 在不同侧时，事实上都不需要比较，只要继续往 target 那一侧缩减范围
 # 但是为了简化代码的目的，我们维护一个 comparetor
+# 说实话这种解法很难想得到，建议下面的解法 ↓
 def search(nums,target):
   low = 0
   high = len(nums) - 1
@@ -235,7 +252,7 @@ def search(nums,target):
   comparetor = None
   while low <= high:
     mid = low + ((high-low)>>1)
-    # !如果在同一侧
+    # 如果在同一侧
     if (nums[mid] < nums[0]) == (target < nums[0]):
       comparetor = nums[mid]
     # target 在右侧，将 mid 看作 -Inf 继续模拟二分查找
@@ -251,6 +268,23 @@ def search(nums,target):
     else:
       high = mid - 1
   return -1
+
+# 平易近人的解法：首先我们找出波谷的位置，然后取其中一边来 BS 即可
+def searchRotated(nums,target):
+  minIdx = findMin(nums)
+  n = len(nums)
+  # 将目标值与最右侧比较，来确定在哪边
+  low = minIdx if target <= nums[-1] else 0
+  high = n - 1 if target <= nums[-1] else minIdx - 1
+  # 正常二分
+  while low <= high:
+    mid = low + (high - low)//2
+    if nums[mid] == target:
+      return mid
+    elif nums[mid] < target:
+      low = mid + 1
+    else:
+      high = mid - 1
 
 # 接上题，假如有序数组中有重复元素
 # 当 nums[mid] 等于 nums[0] 的时候，上题的左右判断会有问题
@@ -313,20 +347,7 @@ def searchMatrixPro(matrix,target):
       high = mid - 1
   return False
 
-# !有序数组在某个点被切开，比如456012，求最小值
-def findMin(nums):
-  low = 0
-  high = len(nums) - 1
-  while low <= high:
-    if nums[low] <= nums[high]:
-      return nums[low]
-    mid = low + ((high - low) >> 1)
-    # 左侧有序，往右边找
-    if nums[low] <= nums[mid]:
-      low = mid + 1
-    else:
-      # mid 有可能是目标值，因此不能减1
-      high = mid
+
 
 # 寻找最小连续 subArray 使得 sums >= s
 def findMinSubArray(nums,s):

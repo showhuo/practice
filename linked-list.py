@@ -3,6 +3,7 @@ class Node():
   def __init__(self,value=None,next=None):
     self.value = value
     self.next = next
+  # 下面三个太啰嗦
   def getValue(self):
     return self.value
   def setNext(self, node):
@@ -10,9 +11,6 @@ class Node():
     return self
   def getNext(self):
     return self.next
-
-nodeA = Node('a')
-nodeB = Node('b')
 
 class LinkedList(object):
   def __init__(self, head=None):
@@ -122,102 +120,15 @@ def isLoop(ll):
   print('There is no loop in the linked list')
   return False
 
-# 合并两个有序链表：额外空间
+# 合并两个有序链表
 def mergeSortedLinkedList(ll1,ll2):
-  i = ll1.head
-  j = ll2.head
-  newNode = Node()
-  newList = LinkedList()
-  newList.head = newNode
-  while i and j:
-    if i.getValue() <= j.getValue():
-      newNode.setNext(i)
-      i = i.getNext()
-    else:
-      newNode.setNext(j)
-      j = j.getNext()
-    newNode = newNode.getNext()
-  # 看看还剩下啥
-  if i is not None:
-    newNode.setNext(i)
-  if j is not None:
-    newNode.setNext(j)
-  print(newList.detail())
-  return newList
-
-#! 合并有序链表：原地合并
-def mergeSortedLinkedListPro(ll1,ll2):
-  i = ll1.head
-  j = ll2.head
-  if i.getValue() > j.getValue():
-    ll1,ll2 = ll2,ll1
-  while i and j:
-    while i.getNext() and i.getNext().getValue() < j.getValue():
-      i = i.getNext()
-    while j.getNext() and j.getNext().getValue() < i.getValue():
-      j = j.getNext()
-    if i.getValue() <= j.getValue():
-      temp = i.getNext()
-      i.setNext(j)
-      i = temp
-    else:
-      temp = j.getNext()
-      j.setNext(i)
-      j = temp
-  print(ll1.detail())
-  return ll1
+  pass
 
 # 递归写法
-# 返回剩余节点中最小的那个
-def recur(i,j):
-  if i is None:
-    return j
-  if j is None:
-    return i
-  if i.getValue() <= j.getValue():
-    result = i
-    result.setNext(recur(i.getNext(),j))
-  else:
-    result = j
-    result.setNext(recur(i,j.getNext()))
-  return result
-
 def mergeSortedLinkedListRecur(ll1,ll2):
-  i = ll1.head
-  j = ll2.head
-  head = recur(i,j)
-  resultList = LinkedList()
-  resultList.head = head
-  print(resultList.detail())
-  return resultList
+  pass
 
-# 递归写法
-# 无返回值，更简单，需要将操作目标作为递归函数的变量
-def recur2(i,j,tempNode):
-  if i is None:
-    tempNode.setNext(j)
-    return
-  if j is None:
-    tempNode.setNext(i)
-    return
-  if i.getValue() <= j.getValue():
-    tempNode.setNext(i)
-    recur2(i.getNext(),j,i)
-  else:
-    tempNode.setNext(j)
-    recur2(i,j.getNext(),j)
-
-def mergeSortedLinkedListRecur2(ll1,ll2):
-  i = ll1.head
-  j = ll2.head
-  tempNode = Node()
-  resultList = LinkedList()
-  resultList.head = tempNode
-  recur2(i,j,tempNode)
-  print(resultList.detail())
-  return resultList
-
-#! 删除倒数第 n 个节点
+# 删除倒数第 n 个节点
 def deleteNodeFromEnd(ll,n):
   size = ll.size()
   count = 1
@@ -259,18 +170,6 @@ def findMiddle(ll):
     step2 = step2.getNext().getNext()
   print(step1.getValue())
   return step1
-
-
-head1 = Node(0)
-head2 = Node(3)
-ll1 = LinkedList(head1)
-ll2 = LinkedList(head2)
-ll1.append(1).append(2).append(7)
-ll2.append(4).append(5).append(8)
-# mergeList = mergeSortedLinkedListPro(ll2,ll1)
-# deleteNodeFromEndPro(mergeList,3)
-# findMiddle(mergeList)
-
 
 # 双向链表定义
 
@@ -384,22 +283,23 @@ def removeNthFromEnd(self, head: ListNode, n: int) -> ListNode:
     prev.next = None
   return head
 
-# 合并 K 个有序链表
+# 合并 K 个有序链表，经典的 heap 方案
+from collections import _heapq
 import queue
 def mergeKSortedLL(lists) -> ListNode:
   dummy = cur = ListNode(0)
-  heap = queue.PriorityQueue()
+  heap = []
   for l in lists:
     if l:
-      heap.put(l.val,l)
-  while heap.get():
-    temp = heap.get() #取出最小节点
+      _heapq.heappush(heap,(l.val,l)) 
+  while heap:
+    temp = _heapq.heappop()[1] #取出最小节点
     cur.next = temp
     cur = cur.next
     if temp.next:
       # 最小链表右移一位，继续放入 heap
       temp = temp.next
-      heap.put(temp.val,temp)
+      _heapq.heappush(heap,(temp.val,temp))
   return dummy.next
 
 # 每两个节点互换，不允许直接改val
@@ -519,13 +419,15 @@ def reverseBetween(head,m,n):
   return head if preStart.val is not None else preStart.next
 # showDetail(reverseBetween(createLinkedList([1,2,3,4,5]),4,5))
 
-# 利用有序链表构造二叉搜索树 BST
+
 # 定义二叉树节点
 class TreeNode(object):
   def __init__(self, val):
     self.val = val
     self.left = None
     self.right = None
+
+# 利用有序链表构造二叉搜索树 BST，解法之一，得到的树比较平衡
 # 普通解法
 def sortedListToBST(head):
   # 将有序链表转换为数组，能够更高效的寻找mid节点
@@ -548,7 +450,7 @@ def sortedListToBST(head):
     return node
   return createBST(arr)
 
-# TODO 还可以模拟 BST 的中序遍历，构造这棵树
+# 模拟 BST 的中序遍历，构造这棵树，正常人看不懂。。。
 # 因为 BST 的中序遍历结果就是一个升序的序列，相当于反推
 def sortedListToBSTPro(head):
   size = 0
@@ -558,6 +460,7 @@ def sortedListToBSTPro(head):
     size += 1
   # 模拟中序遍历
   def inOrderIterate(L,R):
+    nonlocal head
     if L > R:
       return None
     mid = (R - L)//2

@@ -1,4 +1,3 @@
-import numpy
 import math
 
 def isPalindrome(s):
@@ -78,7 +77,16 @@ def longestPalindromePlus(s):
 
 print(longestPalindromePlus(test))
 
-# 给定一个整数数组，求组成最大和的连续子串
+# 给定一个数组，求连续子串的最大和
+def maxSubArray0(nums):
+  # 正常应该是 DP 解法，这里使用特殊的累加解法
+  # 当前面之和为正数，累加到当前值，最后求数组最大值
+  for i in range(1,len(nums)):
+    if nums[i-1] > 0:
+      nums[i] += nums[i-1]
+  return max(nums)
+
+# TODO 给定一个整数数组，求组成最大和的连续子串
 # 思路：从左往右遍历一遍，当前和如果小于0则舍弃
 def maxSubArray(nums):
   resultList = [nums[0]]
