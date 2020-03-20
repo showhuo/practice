@@ -14,21 +14,7 @@ function sortTwoNums(arr) {
 // console.log(sortTwoNums([2, 1, 1, 2, 1, 1, 2]));
 
 // 机器人从0开始，可以走一步，也可以走当前位置的两倍，求走到 dest 的最少步数
-function leastStepsWrong(dest) {
-  let cur = 1;
-  let res = 1;
-  while (cur * 2 <= dest) {
-    cur *= 2;
-    res += 1;
-  }
-  // 剩下的只能一步步走
-  res += dest - cur;
-  return res;
-}
-// console.log(leastStepsWrong(500));
-
-// 上述解法是错的，事实上应该让最后几步尽可能翻倍，因为跨度大
-// 应该倒推，转化为尽量整除 2
+// 应该让最后几步尽可能翻倍，因为跨度大，倒推，转化为尽量整除 2
 function leastSteps(dest) {
   res = 0;
   while (dest > 1) {
@@ -63,9 +49,9 @@ function leastStepsRecur(dest, res) {
 
 // 构造函数使得 f(a,b) = f(a)(b) = a + b
 // 函数式编程
+// 同理可以扩展为无数个参数
 function f(...args) {
   if (args.length === 1) {
-    // 应该返回一个函数
     return b => {
       return args[0] + b;
     };
@@ -77,16 +63,6 @@ function f(...args) {
 }
 // let a = f(1);
 // console.log(a(10));
-
-// 数组中大部分数字都出现2次，只有一个数字出现一次，找出它
-// 任何变量异或自己都等于0
-function findUniNum(arr) {
-  let res = 0;
-  for (const ele of arr) {
-    res ^= ele;
-  }
-  return res;
-}
 
 // 写一个柯里函数，使得它在 fn() 执行前可以不断累加参数值
 // 比如 fn(1)(2,3)(4,5,6)() === 21
@@ -102,6 +78,18 @@ function currySum(...args) {
 }
 // let fn = currySum(1)(2, 3);
 // console.log(fn(4, 5, 6)());
+
+// 下一步可以引申出写一个 curry 函数，将普通函数 curry 化
+
+// 数组中大部分数字都出现 2 次，只有一个数字出现一次，找出它
+// 任何变量异或 ^ 自己都等于 0
+function findUniNum(arr) {
+  let res = 0;
+  for (const ele of arr) {
+    res ^= ele;
+  }
+  return res;
+}
 
 // 假值判断
 function judgeFake() {
@@ -223,21 +211,13 @@ const throttle2 = (func, limit) => {
 // 压制函数 debounce，重新触发就重置计时器
 function debounce(fn, wait) {
   let timer = null;
-  const reFn = (...args) => {
+  return (...args) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
       fn(...args);
     }, wait);
   };
-  return reFn;
 }
-
-// const logFn = n => console.log(n);
-// const deLog = debounce(logFn, 3000);
-// deLog(5);
-// setTimeout(() => {
-//   deLog(666);
-// }, 2000);
 
 // 订阅发布模式
 class PubSub {
@@ -316,7 +296,7 @@ function longestCommonPrefix(strs) {
 // 如果是 j 遇到非法字符的情况，重新复制一份原始 s1 哈希表
 // 如果是 j 遇到合法字符，但是 i 需要移位的情况，将当前哈希表对应 i - 新位置之间的字符的下标数组们，补回一些库存
 // 但是呢，补回下标库存的操作逻辑相当麻烦，我们需要重新审视 i 跳跃下标的问题，事实上从 i 往 j 逐步检查，也能找到第一个 j 字符的位置
-// 也就是说 s1 哈希表事实上记录个数也就足够了
+// 也就是说 s1 哈希表记录个数就足够了
 function checkInclusion(s1, s2) {
   const lengthS1 = s1.length;
   const hashmap = {}; // 存储 s1 的所有字符对应的下标队列
@@ -331,9 +311,6 @@ function checkInclusion(s1, s2) {
     j = 0;
   let copyHashmap = { ...hashmap };
   while (j < s2.length) {
-    console.log(i);
-    console.log(copyHashmap);
-
     let w = s2[j];
     if (w in copyHashmap) {
       if (copyHashmap[w] >= 1) {
@@ -383,6 +360,7 @@ function multiply(num1, num2) {
       let mul = Number(num1[i]) * Number(num2[j]);
       let sum = mul + tempArr[i + j + 1];
       tempArr[i + j + 1] = sum % 10;
+      // 高位超过10的话也无所谓
       tempArr[i + j] += Math.floor(sum / 10);
     }
   }
@@ -820,7 +798,7 @@ class Node {
 
 // 原地合并有序链表
 function mergeTwoLists(l1, l2) {
-  // !不要把简单问题复杂化
+  // 不要把简单问题复杂化
   const dummy = new ListNode();
   let cur = dummy;
   while (l1 && l2) {
@@ -921,25 +899,7 @@ function dfsForTwoScore(root, p, q) {
   );
 }
 
-// brute force 利用上述函数，来找公共父节点
-function lowestCommonAncestor(root, p, q) {
-  if (root.val === p.val || root.val === q.val) return root;
-  while (root) {
-    let score = dfsForTwoScore(root.left, p, q, 0);
-    switch (score) {
-      case 1:
-        return root;
-      case 2:
-        root = root.left;
-        break;
-      case 0:
-        root = root.right;
-        break;
-      default:
-        break;
-    }
-  }
-}
+// brute force 利用上述函数，来找公共父节点，缺点是遍历次数较多
 
 // !这题其实有点难，特别是这种高效解法
 // 关键是辅助函数，在递归返回的同时，适时操作外部变量
