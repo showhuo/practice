@@ -81,7 +81,7 @@ const bind = (fn, context, ...preset) => (...args) =>
 
 // 实现一个单例模式，注意是该实例只能被创建一个，而不是只能执行一次
 // 通常是用 IIFE 闭包实现
-const Singleton = (function() {
+const Singleton = (function () {
   let instance = null;
   function create(params) {
     return { params };
@@ -170,35 +170,26 @@ class PubSub {
   }
 }
 
-// !websocket 设计模式
-// 给定一个 ws 对象，有 send 和 on('msg', cb) 两个方法
-// 设计一个 fetch(url) 底层调用 ws，返回 promise 可以链式调用
+// 题目：要求 websocket 改造成 promise based 用法
+// 给定 ws 对象，已知有 send 和 on('nessage', cb) 两个方法
+// 要求设计一个 fetch() 底层调用 ws，返回 promise 链式调用
 // 需要区分不同的 ws 请求
-const wsPubSuber = new PubSub();
-const ws = {
-  send() {},
-  on(res) {
-    // 收到数据应该通知对应的 id 接受者
-    wsPubSuber.publish(res.id, res);
-  }
-};
-class Fetch {
-  constructor(url) {
-    this.instance = ws.send(url, Fetch.id++);
-    // 注册到哈希表，声明 id 与请求的关系
-    return new Promise((resolve, reject) => {
-      // !需要把收到的数据 resolve 出去，这里就等待 publish 触发
-      wsPubSuber.subScribe(Fetch.id, res => {
-        resolve(res);
-      });
-    });
-  }
+
+// 思路：首先这是个陷阱，promise 只应该负责一次性的响应
+// 长期的监听天然应该使用 callback，这里要避免 on(cb) 重复监听
+// 没有必要额外再引入 pubsub，因为 ws 已经具备这个能力
+
+function fetchWs(url) {
+  return new Promise((resolve, reject) => {
+    // 这里要避免重复监听，应该是一次性的，即 once: true
+    ws.on('message', res => {
+      resolve(res);
+    }, { once: true });
+    // 先监听，再触发
+    ws.send(url, Fetch.id++);
+  });
 }
-// !没有 babel 的帮助，类的静态属性只能写在外面，静态方法才能写在里面 static fn(){}
-Fetch.id = 0;
-let f1 = new Fetch(12);
-let f2 = new Fetch(2);
-// console.log(Fetch.id);
+
 
 // CSS 高频问题
 // Q1：CSS 盒模型？

@@ -71,10 +71,13 @@ def leastInterval(tasks,n):
   k = arr[25]
   i = 25
   while i > 0 and arr[i] == k:
-    # 尝试找出最大次数相同的情况，这决定了最后一份大小
+    # 尝试找出最大次数相同的情况，这决定了最后一份大小，有多少个最大次数的元素，就是最后一份的大小，不需要 idle
+    # 这么倒序计算 i 是因为效率高
     i -= 1
   lastKsize = 25 - i
   return max([len(tasks), (n+1) * (k-1) + lastKsize])
+
+  # 上题跟队列关系不大，不过也可以用优先级队列解决
 
 # Shortest Subarray with Sum > K 最短连续子序列，和大于 K
 # 这里我们用到 monoqueue 单调队列
