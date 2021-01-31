@@ -817,10 +817,139 @@ function fractionalBag(i, j, res, wei, val) {
 }
 
 
-// 一个重要的问题：如何用循环 + stack 表示递归，体现为代码
-// 我们可以先从 DFS 的 stack 写法中开始学习
+// 一个重要的问题：如何用循环 + stack 表示递归，体现为代码？
 // 在函数调用栈里，假设函数 A 执行到一半，遇到另一个函数 B 调用，此时 A 会暂停，将 B 的内容构造为一个对象压入调用栈
 // 注意不是所有函数一次性全部压入栈中，而是边执行边压栈，只有遇到新的函数调用才会压栈
-// 为什么说二叉树的 DFS 遍历复杂度是 O(n)，每个节点被访问两次？要从两方面分析，一是每个节点需要入栈和出栈一次，贡献了 2n 复杂度；
-// 二是每个节点有两条边，也贡献了 2n 复杂度，因此严格来说是 4n 复杂度；
-// 如果是 N 叉树，每个节点有 N 条边，根据图的 O(V+E) 类比，其 DFS 复杂度是 O(n+n*N)
+// 在 DFS 的 stack 写法中，并不是直接翻译递归代码的函数调用栈过程，而是重新组织一种逻辑，破坏了前序遍历的顺序，好处是代码比较好写
+
+// 在图的 DFS/BFS 教科书写法里，用白、灰、黑三种颜色来标记节点状态，防止重复，且为其他应用铺垫，一开始都是白色
+// BFS 只会从一个指定顶点开始，寻找到达目标的最短路径，而 DFS 通常遍历所有白色的顶点开始，且 DFS 使用全局变量 time 来标记时间 
+
+function DFSDefault(G) {
+  time = 0;
+  for (const u of G.V) {
+    if (u.color === 'white') {
+      DFSRecur(G, u)
+    }
+  }
+}
+
+function DFSRecur(G, u) {
+  time++;
+  u.start = time;
+  u.color = 'gray';
+  for (const v of G.adj[u]) {
+    if (v.color = 'white') {
+      v.prev = u;
+      DFSRecur(G, v);
+    }
+  }
+  time++;
+  u.finish = time;
+  u.color = 'black';
+}
+
+function DFSVisitStack(G, u) {
+  const stack = [];
+  stack.push(u);
+  time++;
+  u.start = time;
+  u.color = 'gray';
+  while (stack.length > 0) {
+    const top = stack.pop();
+    const v = whiteNeighbor(G, top);
+    if (!v) {
+      top.color = 'black';
+      time++;
+      top.finish = time;
+    } else {
+      v.color = 'gray';
+      v.prev = top;
+      time++;
+      v.d = time;
+      stack.push(v);
+    }
+  }
+}
+
+// 为什么说二叉树的 DFS 遍历复杂度是 O(n) ？这要从两方面分析，一是每个节点需要入栈和出栈一次，贡献了 2n 复杂度
+// 二是每个节点有两条边，就是通常说的每个节点被访问两次，也贡献了 2n 复杂度，因此严格来说是 4n 复杂度
+// 如果是 N 叉树，每个节点有 N 条边，则每个节点被访问 N 次，根据图的 O(V+E) 类比，其 DFS 复杂度是 O(n+n*N)
+// 简而言之，图的 DFS、BFS 算法具有更广阔的适用性，树只是它的简化版
+
+
+// 22.3-10 改造 DFS 算法，对 edges 进行分类，有向图的 edges 可以分为四类：tree、back、forward、cross edges
+// 依据是第一次遇到 v 的时候，检查 v 的颜色：白色是 tree，灰色是 back，黑色是其他两种，有趣的是如果 v.start > u.start，说明是 forward edge
+function DFSClassifyEdges(G, u) {
+  u.color = 'gray';
+  time++;
+  u.start = time;
+  for (const v of G.adj[u]) {
+    if (v.color === 'white') {
+      treeEdges.push([u, v]);
+      v.prev = u;
+      DFSClassifyEdges(G, v);
+    } else if (v.color === 'gray') {
+      backEdges.push([u, v]);
+    } else if (v.start > u.start) {
+      forwardEdges.push([u, v]);
+    } else {
+      crossEdges.push([u, v])
+    }
+  }
+  time++;
+  u.finish = time;
+  u.color = 'black';
+}
+
+// 22.3-12 改造 DFS 把无向图分成 Disjoint-Sets，每个节点挂载 .cc 属性，表示所处的集合代号
+function DFSToDisjointSets(G) {
+  let k = 0;
+  for (const u of G.V) {
+    if (u.color === 'white') {
+      k++;
+      recur(G, u, k);
+    }
+  }
+
+  function recur(G, u, k) {
+    u.color = 'gray';
+    u.cc = k;
+    for (const v of G.adj[u]) {
+      if (v.color === 'white') {
+        v.prev = u;
+        recur(G, v, k);
+      }
+    }
+    u.color = 'black';
+  }
+}
+
+// 22.4-2 改造 DFS 计算有向无环图 dag 中，从 p 到 v 有几条路
+function DFSCountPToV(G, p, v) {
+  let count = 0;
+  function recur(G, p, v) {
+    p.color = 'gray';
+    time++;
+    p.start = time;
+    for (const u of G.adj[p]) {
+      if (u === v) {
+        count++;
+      } else if (u.color === 'white') {
+        u.prev = p;
+        recur(G, u, v);
+      }
+    }
+    p.color = 'black';
+    time++;
+    p.finish = time;
+  }
+
+  recur(G, p, v);
+  return count;
+}
+
+// 22.4-5 另一种拓扑排序的实现思路：每次找到 in-degree 为 0 的节点，说明它不依赖别人，将它从图中移除，并将它指向别人的边切断，它就是 res 序列的早期成员。
+function TopoByIndegree(G) {
+  
+}
