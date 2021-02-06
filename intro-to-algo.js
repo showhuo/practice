@@ -817,6 +817,42 @@ function fractionalBag(i, j, res, wei, val) {
 }
 
 
+// 第21章，不相交集合的实现，Disjoint-set forests
+// 注意 root 的特点是 x.parent = x，通常是其所在集合的代表
+
+class DisjointSetForests {
+  constructor() { }
+
+  makeSet(x) {
+    x.parent = x;
+    x.rank = 0;
+    return x;
+  }
+
+  unionSets(u, v) {
+    this.linkSets(this.findSet(u), this.findSet(v));
+  }
+
+  // 这个就是 union by rank，防止树太高
+  linkSets(u, v) {
+    if (u.rank < v.rank) {
+      u.parent = v;
+      v.rank = Math.max(v.rank, u.rank + 1); // 这行是多余的，因为 u.rank + 1 <= v.rank
+    } else {
+      v.parent = u;
+      if (u.rank === v.rank) u.rank++; // 有趣的是只有二者 rank 相等且合并时，rank 才有增加
+    }
+  }
+
+  // 这个就是 path-compression，路径压缩，加快下次查找
+  findSet(x) {
+    if (x === x.parent) return x;
+    x.parent = this.findSet(x.parent);
+    return x.parent;
+  }
+}
+
+
 // 一个重要的问题：如何用循环 + stack 表示递归，体现为代码？
 // 在函数调用栈里，假设函数 A 执行到一半，遇到另一个函数 B 调用，此时 A 会暂停，将 B 的内容构造为一个对象压入调用栈
 // 注意不是所有函数一次性全部压入栈中，而是边执行边压栈，只有遇到新的函数调用才会压栈
@@ -951,5 +987,5 @@ function DFSCountPToV(G, p, v) {
 
 // 22.4-5 另一种拓扑排序的实现思路：每次找到 in-degree 为 0 的节点，说明它不依赖别人，将它从图中移除，并将它指向别人的边切断，它就是 res 序列的早期成员。
 function TopoByIndegree(G) {
-  
+
 }
