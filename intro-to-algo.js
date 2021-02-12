@@ -820,36 +820,80 @@ function fractionalBag(i, j, res, wei, val) {
 // 第21章，不相交集合的实现，Disjoint-set forests
 // 注意 root 的特点是 x.parent = x，通常是其所在集合的代表
 
-class DisjointSetForests {
-  constructor() { }
 
-  makeSet(x) {
-    x.parent = x;
-    x.rank = 0;
-    return x;
+
+function makeSet(x) {
+  x.parent = x;
+  x.rank = 0;
+  return x;
+}
+
+function unionSets(u, v) {
+  return linkSets(findSet(u), findSet(v));
+}
+
+// 这个就是 union by rank，防止树太高
+function linkSets(u, v) {
+  if (u.rank < v.rank) {
+    u.parent = v;
+    v.rank = Math.max(v.rank, u.rank + 1); // 这行是多余的，因为 u.rank + 1 <= v.rank
+    return v;
+  } else {
+    v.parent = u;
+    if (u.rank === v.rank) u.rank++; // 有趣的是只有二者 rank 相等且合并时，rank 才有增加
+    return u;
   }
+}
 
-  unionSets(u, v) {
-    this.linkSets(this.findSet(u), this.findSet(v));
+// 这个就是 path-compression，路径压缩，加快下次查找
+function findSet(x) {
+  if (x === x.parent) return x;
+  x.parent = findSet(x.parent);
+  return x.parent;
+}
+
+
+// 21-1 Offline minimum 问题，静态数据源，给定一系列操作由 n 次 Insert 和 m 次 Extract-min 组成，数值在 1..n 之间，求 extracted 数组。
+// S 的组成比如：2,3,1,E,5,E,E,7,8,E 等等
+// 因为是静态数据，我们提前知道所有的行为和数据，可以进行预处理，将连续的 Insert 抽象成一个集合 j
+function offlineMinimum(S, n, m) {
+  function treeNode(v) {
+    return { v }
   }
-
-  // 这个就是 union by rank，防止树太高
-  linkSets(u, v) {
-    if (u.rank < v.rank) {
-      u.parent = v;
-      v.rank = Math.max(v.rank, u.rank + 1); // 这行是多余的，因为 u.rank + 1 <= v.rank
+  const initNodes = Array(n + 1).fill(null);
+  // 先把数字构造成 node，存起来，防止重复创建以及引用丢失
+  for (let i = 1; i <= n; i++) {
+    const node = treeNode(i)
+    initNodes[i] = node;
+  }
+  const kSets = [];
+  let countE = 0;
+  // 遍历 S 把连续的 Insert 合并为一个集合
+  for (let i = 0; i < S.length; i++) {
+    const ele = S[i];
+    if (ele !== 'E') {
+      const eleSet = makeSet(initNodes[ele]);
+      if (!kSets[countE]) {
+        kSets[countE] = eleSet;
+      } else {
+        kSets[countE] = linkSets(kSets[countE], eleSet)
+      }
+      // 给集合挂载额外下标，最后用于生成 extracted 数组
+      kSets[countE].countE = countE;
     } else {
-      v.parent = u;
-      if (u.rank === v.rank) u.rank++; // 有趣的是只有二者 rank 相等且合并时，rank 才有增加
+      countE++;
     }
   }
-
-  // 这个就是 path-compression，路径压缩，加快下次查找
-  findSet(x) {
-    if (x === x.parent) return x;
-    x.parent = this.findSet(x.parent);
-    return x.parent;
+  // 从小到大，为数字 i 找到它所在的 extracted 数组的位置，只有小的有位置
+  // 注意这期间还需要不断的合并集合，因为它的编号透露了 E 的次数
+  const extracted = [];
+  for (let i = 1; i <= n; i++) {
+    const node = initNodes[i];
+    const mySet = findSet(node);
+    extracted[mySet.countE] = i;
+    // TODO 尝试找到下一个集合，让它吞并当前集合，为下一个 E 做准备，因为当前的 countE 已经不能用了
   }
+
 }
 
 
