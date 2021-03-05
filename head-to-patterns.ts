@@ -366,6 +366,7 @@ abstract class TemplateClass {
 
 
 // 组合模式，composite 节点和 leaf 节点拥有相同接口，Client 不需要区分这两种节点
+// 另一种实现思路：只实现两种节点合理的共同接口，Client 需要区分（不透明），但更安全
 abstract class ComponentNode {
     add() {
         throw new Error("No add method available");
@@ -413,7 +414,7 @@ class ClientForCompositePattern {
 }
 
 
-// State pattern 状态模式，又称为有限状态机，有点像策略模式，但针对性不同
+// State pattern 状态模式，又称为有限状态机，有点像策略模式，但状态转换之间有固定套路
 // 所有的状态类实现相同的 State 接口，尽管它们的 actions 名称相同，但作用不相同
 // Machine 类将 actions 调用委托给 State state，调用之后 state 可能会发生替换，它们相互影响
 abstract class StatePatternState {
