@@ -32,9 +32,9 @@ class NormalQuack implements Quackable {
 }
 
 class Duck {
-    name: string
-    flyBehavior: Flyable
-    quackBehavior: Quackable
+    name: string;
+    flyBehavior: Flyable;
+    quackBehavior: Quackable;
     constructor(name: string) {
         this.name = name;
     }
@@ -87,8 +87,8 @@ interface Observer {
 }
 
 class ConcreteSubject implements Subject {
-    observers: Set<Observer> = new Set()
-    someData: number
+    observers: Set<Observer> = new Set();
+    someData: number;
     registerObserver(ob: Observer) {
         this.observers.add(ob);
     }
@@ -97,7 +97,7 @@ class ConcreteSubject implements Subject {
     }
     notifyObservers() {
         // 这里默认是 push 模式，如果是 pull 模式就不在这里传数据，而是让 observer 在 update 自己去取
-        this.observers.forEach(ob => { ob.update(this.someData) })
+        this.observers.forEach(ob => { ob.update(this.someData); });
     }
     changeData() {
         this.someData++;
@@ -108,7 +108,7 @@ class ConcreteSubject implements Subject {
 }
 
 class ConcreteObserver implements Observer {
-    name: string
+    name: string;
     constructor(name: string, subject: Subject) {
         this.name = name;
         subject.registerObserver(this);
@@ -140,19 +140,19 @@ abstract class Beverage {
 
 class Coffee extends Beverage {
     name = 'coffee';
-    prices = { small: 1.0, middle: 1.5, large: 2.0 }
+    prices = { small: 1.0, middle: 1.5, large: 2.0 };
     cost() {
-        return this.prices[this.size]
+        return this.prices[this.size];
     }
 }
 
 abstract class BeverageDecorater extends Beverage {
-    abstract getName(): string
+    abstract getName(): string;
 }
 
 class MochaDecorater extends BeverageDecorater {
     beverage: Beverage;
-    prices = { small: 0.1, middle: 0.2, large: 0.3 }
+    prices = { small: 0.1, middle: 0.2, large: 0.3 };
     constructor(beverage: Beverage) {
         super();
         this.beverage = beverage;
@@ -174,7 +174,7 @@ const moreMocha = new MochaDecorater(mochaCoffee);
 // 工厂模式：工厂方法和抽象工厂模式，前者生产一个对象，并定义其他方法操作，用继承实现；后者生产一系列对象，用接口实现；
 // 封装创建对象的过程，让使用者与创建者解耦
 abstract class FactoryMethodFactory {
-    abstract createProduct(): Product
+    abstract createProduct(): Product;
     deliver() {
         // deliver product to customers，whatever product it is.
         console.log(`Deliver ${this.createProduct()} to customers`);
@@ -192,7 +192,7 @@ class Product {
 
 class ConcreteFactoryMethodFactory extends FactoryMethodFactory {
     createProduct() {
-        return new Product('A', 1.0)
+        return new Product('A', 1.0);
     }
 }
 
@@ -270,10 +270,10 @@ class MacroCommand implements Command {
         this.commands = commands;
     }
     execute() {
-        this.commands.forEach(c => { c.execute() })
+        this.commands.forEach(c => { c.execute(); });
     }
     undo() {
-        this.commands.forEach(c => { c.undo() })
+        this.commands.forEach(c => { c.undo(); });
     }
 }
 
@@ -463,9 +463,9 @@ class StatePatternMachine implements StatePatternState {
 
 class NoCoinState extends StatePatternState {
     name: 'NoCoinState';
-    machine: StatePatternMachine
+    machine: StatePatternMachine;
     constructor(machine: StatePatternMachine) {
-        super()
+        super();
         this.machine = machine;
     }
     insertCoin() {
@@ -480,9 +480,9 @@ class NoCoinState extends StatePatternState {
 
 class HasCoinState extends StatePatternState {
     name: 'HasCoinState';
-    machine: StatePatternMachine
+    machine: StatePatternMachine;
     constructor(machine: StatePatternMachine) {
-        super()
+        super();
         this.machine = machine;
     }
     insertCoin() {
