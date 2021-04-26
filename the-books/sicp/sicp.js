@@ -220,13 +220,13 @@ function product(term, a, next, b) {
 // 这个 fixed_point 是求解 f(x) = x 方程的经典方法
 // 比如求解 x^^2 + 2x + 1 = 0，只需转换为 f(x) = -2 - 1/x，执行下列函数即可
 // 当然了，并非所有方程都有解，这个可以通过限制递归次数或者提前数学证明
-function fixed_point(f, guess) {
+export function fixed_point(f, guess) {
   return is_good_enough(f(guess), guess)
     ? guess
     : fixed_point(f, (f(guess) + guess) / 2);
 }
 function is_good_enough(a, b) {
-  return Math.abs(a - b) < 0.0001;
+  return Math.abs(a - b) < 0.001;
 }
 // console.log(fixed_point(x => 1 + 1 / x, 1)); // 黄金分割率
 // console.log(fixed_point(x => -2 - 1 / x, -3));
@@ -234,7 +234,7 @@ function is_good_enough(a, b) {
 // 牛顿法提供了一种将任意 g(x) = 0 转换成 x = f(x) 的方法
 // 有了 f(x) 我们就能用 fixed_point 求解 x = f(x) 也就是 g(x) = 0 的近似解
 // 唯一需要做的就是，提供一个初步猜想的 guess 值
-function newtons_method(g, guess) {
+export function newtons_method(g, guess) {
   // 将 g 转换为 f
   function newtons_transform(g) {
     return (x) => x - g(x) / derived(g)(x);
@@ -248,7 +248,7 @@ function newtons_method(g, guess) {
 
 // 示例用牛顿法快速求解 x 的开方 sqrt(x)
 function sqrtByNewton(x) {
-  // 令 z 的平方等于 x，要求 z，因此将 g 表述为 z 的函数
+  // 令 z 的平方等于 x，求 z，因此将 g 表述为 z 的函数
   const g = (z) => Math.pow(z, 2) - x;
   return newtons_method(g, 1);
 }
